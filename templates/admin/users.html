@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">User Management</h1>
+    </div>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Administrators</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ admin_users_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-shield fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                New Users (30d)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ new_users_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
+            <div class="d-flex">
+                <form method="GET" class="d-flex">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control bg-light border-0 small" 
+                               placeholder="Search users..." value="{{ request.args.get('search', '') }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search fa-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="dropdown ml-2">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                            id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">All Users</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_users', role='admin') }}">Administrators</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_users', role='user') }}">Regular Users</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_users', new='30') }}">New Users (30d)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Contact</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-3 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        {{ user.username[0]|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ user.username }}</div>
+                                        <div class="text-muted small">{{ user.role|capitalize }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ user.email }}</div>
+                                <div class="text-muted small">{{ user.phone_number or 'No phone' }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' }}">
+                                    {{ user.role|capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ user.created_at.strftime('%b %d, %Y') }}</div>
+                                <div class="text-muted small">{{ user.created_at|time_ago }}</div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-info" data-bs-toggle="modal" 
+                                            data-bs-target="#userModal{{ user.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if current_user.id != user.id %}
+                                    <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-{{ 'warning' if user.is_active else 'success' }}" 
+                                                title="{{ 'Deactivate' if user.is_active else 'Activate' }}">
+                                            <i class="fas fa-{{ 'user-slash' if user.is_active else 'user-check' }}"></i>
+                                        </button>
+                                    </form>                                    
+                                    <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger" 
+                                                onclick="return confirm('Are you sure you want to delete this user?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="User pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_users', page=pagination.prev_num, search=request.args.get('search'), role=request.args.get('role'), status=request.args.get('status'), new=request.args.get('new')) }}">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_users', page=page_num, search=request.args.get('search'), role=request.args.get('role'), status=request.args.get('status'), new=request.args.get('new')) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_users', page=pagination.next_num, search=request.args.get('search'), role=request.args.get('role'), status=request.args.get('status'), new=request.args.get('new')) }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% for user in users %}
+    <div class="modal fade" id="userModal{{ user.id }}" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">User Details: {{ user.username }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Account Information</h6>
+                            <p>
+                                <strong>Username:</strong> {{ user.username }}<br>
+                                <strong>Email:</strong> {{ user.email }}<br>
+                                <strong>Role:</strong> <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'primary' }}">{{ user.role|capitalize }}</span><br>
+                                <strong>Status:</strong> <span class="badge bg-{{ 'success' if user.is_active else 'secondary' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span><br>
+                                <strong>Joined:</strong> {{ user.created_at.strftime('%b %d, %Y %H:%M') }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Profile Information</h6>
+                            <p>
+                                <strong>Full Name:</strong> {{ user.full_name or 'Not specified' }}<br>
+                                <strong>Phone:</strong> {{ user.phone_number or 'Not specified' }}<br>
+                                <strong>License:</strong> {{ user.license_number or 'Not specified' }}<br>
+                                <strong>Address:</strong> {{ user.address or 'Not specified' }}
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Activity Summary</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ user.bookings|length }}</h5>
+                                            <p class="card-text">Total Bookings</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ user.bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</h5>
+                                            <p class="card-text">Completed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body text-center">
+                                            {% set confirmed_bookings = user.bookings | selectattr('status', 'equalto', 'confirmed') | list %}
+                                            {% set total_spent = confirmed_bookings | sum(attribute='total_cost') %}
+                                            <h5 class="card-title">KES {{ "{:,.2f}".format(total_spent) }}</h5>                                            <p class="card-text">Total Spent</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "paging": false,
+            "searching": false,
+            "info": false,
+            "ordering": true
+        });
+    });
+</script>
+{% endblock %}

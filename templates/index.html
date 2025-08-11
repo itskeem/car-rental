@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}TechLit Rentals | Drive the Future{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1>Premium Car Rentals Across Kenya</h1>
+        <p>Experience the freedom of the open road with our exceptional fleet and unbeatable service</p>
+        {% if 'user_id' not in session %}
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i> Join Now
+        </a>
+        {% endif %}
+    </div>
+</section>
+<section class="featured-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Featured Vehicles</h2>
+            <p>Discover our most popular rental options</p>
+        </div>
+        
+        <div class="row" id="featured-cars-container">
+            {% if cars %}
+                {% for car in cars[:3] %}
+                <div class="col-md-4 mb-4">
+                    <div class="car-card">
+                        <div class="car-img-container">
+                            <img src="{{ car.image_url or url_for('static', filename='images/car-placeholder.jpg') }}" 
+                                 class="car-img" 
+                                 alt="{{ car.make }} {{ car.model }}">
+                            <div class="price-badge">
+                                KES {{ car.price_per_day|int }}/day
+                            </div>
+                        </div>
+                        <div class="car-body">
+                            <h5 class="car-title">{{ car.make }} {{ car.model }}</h5>
+                            <p class="car-meta">
+                                <i class="fas fa-calendar-alt me-1"></i> {{ car.year }} | 
+                                <i class="fas fa-chair me-1"></i> {{ car.seating_capacity }} seats
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <h4 class="text-muted">No vehicles available at the moment</h4>
+                    <p>Please check back later or contact our team</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if 'user_id' not in session %}
+        <div class="text-center mt-4">
+            <a href="{{ url_for('login') }}" class="btn btn-primary">
+                Sign In to Book Your Ride
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('featured-cars-container');
+    const allCars = {{ cars|tojson|safe }};
+    
+    if (allCars && allCars.length > 3) {
+        function getRandomCars() {
+            const shuffled = [...allCars].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 3);
+        }
+        
+        function rotateCars() {
+            const randomCars = getRandomCars();
+            container.innerHTML = '';
+            
+            randomCars.forEach(car => {
+                const carHtml = `
+                <div class="col-md-4 mb-4">
+                    <div class="car-card">
+                        <div class="car-img-container">
+                            <img src="${car.image_url || "{{ url_for('static', filename='images/car-placeholder.jpg') }}"}" 
+                                 class="car-img" 
+                                 alt="${car.make} ${car.model}">
+                            <div class="price-badge">
+                                KES ${car.price_per_day.toFixed(0)}/day
+                            </div>
+                        </div>
+                        <div class="car-body">
+                            <h5 class="car-title">${car.make} ${car.model}</h5>
+                            <p class="car-meta">
+                                <i class="fas fa-calendar-alt me-1"></i> ${car.year} | 
+                                <i class="fas fa-chair me-1"></i> ${car.seating_capacity} seats
+                            </p>
+                        </div>
+                    </div>
+                </div>`;
+                container.insertAdjacentHTML('beforeend', carHtml);
+            });
+        }
+        
+        setInterval(rotateCars, 8000);
+        setTimeout(rotateCars, 8000);
+    }
+});
+</script>
+<section class="steps-section">
+    <div class="container">
+        <div class="section-title">
+            <h2>How It Works</h2>
+            <p>Rent your perfect car in just 3 simple steps</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h5 class="step-title">Select Your Vehicle</h5>
+                    <p>Browse our diverse fleet and choose your ideal car</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h5 class="step-title">Easy Online Booking</h5>
+                    <p>Secure your reservation with our simple booking system</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h5 class="step-title">Hit The Road</h5>
+                    <p>Pick up your car and enjoy your adventure</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

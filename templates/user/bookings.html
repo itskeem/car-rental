@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">My Bookings</h1>
+        <a href="{{ url_for('search_cars') }}" class="btn btn-primary">
+            <i class="fas fa-car"></i> Rent Another Car
+        </a>
+    </div>
+
+    {% if bookings %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Booking History</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" 
+                   data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter fa-sm fa-fw text-gray-400"></i> Filter
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+                    <li><a class="dropdown-item" href="{{ url_for('user_bookings') }}">All Bookings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{{ url_for('user_bookings', status='confirmed') }}">Confirmed</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('user_bookings', status='pending') }}">Pending</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('user_bookings', status='completed') }}">Completed</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('user_bookings', status='cancelled') }}">Cancelled</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Booking</th>
+                            <th>Vehicle</th>
+                            <th>Rental Period</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr class="{% if booking.status == 'cancelled' %}table-secondary{% elif booking.status == 'completed' %}table-success{% endif %}">
+                            <td>
+                                <div class="fw-bold">#{{ booking.id }}</div>
+                                <div class="small text-muted">
+                                    {{ booking.created_at.strftime('%b %d, %Y %H:%M') }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if booking.car.image_url %}
+                                    <img src="{{ booking.car.image_url }}" class="rounded me-3" 
+                                         alt="{{ booking.car.make }} {{ booking.car.model }}" 
+                                         style="width: 60px; height: 40px; object-fit: cover;">
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ booking.car.make }} {{ booking.car.model }}</div>
+                                        <div class="small text-muted">{{ booking.car.year }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ booking.start_date.strftime('%b %d, %Y') }}</div>
+                                <div class="small text-muted">
+                                    to {{ booking.end_date.strftime('%b %d, %Y') }}
+                                </div>
+                                <div class="small">
+                                    {{ (booking.end_date - booking.start_date).days + 1 }} days
+                                </div>
+                            </td>
+                            <td class="fw-bold">KES {{ "{:,.2f}".format(booking.total_cost) }}</td>
+                            <td>
+                                <span class="badge bg-{{ 
+                                    'success' if booking.status == 'confirmed' 
+                                    else 'primary' if booking.status == 'completed'
+                                    else 'warning' if booking.status == 'pending' 
+                                    else 'secondary' 
+                                }}">
+                                    {{ booking.status|capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-info" data-bs-toggle="modal" 
+                                            data-bs-target="#bookingModal{{ booking.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if booking.status in ['confirmed', 'pending'] and booking.start_date > today %}
+                                    <form method="POST" action="{{ url_for('cancel_booking', booking_id=booking.id) }}" 
+                                          class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger" 
+                                                onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Bookings pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('user_bookings', page=pagination.prev_num, status=request.args.get('status')) }}">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('user_bookings', page=page_num, status=request.args.get('status')) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('user_bookings', page=pagination.next_num, status=request.args.get('status')) }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% for booking in bookings %}
+    <div class="modal fade" id="bookingModal{{ booking.id }}" tabindex="-1" 
+         aria-labelledby="bookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingModalLabel">
+                        Booking #{{ booking.id }} Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" 
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Vehicle Information</h6>
+                            <div class="d-flex mb-3">
+                                {% if booking.car.image_url %}
+                                <img src="{{ booking.car.image_url }}" class="rounded me-3" 
+                                     alt="{{ booking.car.make }} {{ booking.car.model }}" 
+                                     style="width: 120px; height: 80px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ booking.car.make }} {{ booking.car.model }}</div>
+                                    <div class="text-muted small">
+                                        {{ booking.car.year }} • {{ booking.car.registration_number }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        {{ booking.car.engine_capacity }}L • {{ booking.car.seating_capacity }} seats
+                                    </div>
+                                </div>
+                            </div>
+                            <p>
+                                <strong>Daily Rate:</strong> KES {{ "{:,.2f}".format(booking.car.price_per_day) }}<br>
+                                <strong>Pick-up Location:</strong> Main Office<br>
+                                <strong>Insurance Included:</strong> Yes
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Booking Information</h6>
+                            <p>
+                                <strong>Status:</strong> 
+                                <span class="badge bg-{{ 
+                                    'success' if booking.status == 'confirmed' 
+                                    else 'primary' if booking.status == 'completed'
+                                    else 'warning' if booking.status == 'pending' 
+                                    else 'secondary' 
+                                }}">
+                                    {{ booking.status|capitalize }}
+                                </span><br>
+                                <strong>Pick-up Date:</strong> {{ booking.start_date.strftime('%b %d, %Y') }}<br>
+                                <strong>Return Date:</strong> {{ booking.end_date.strftime('%b %d, %Y') }}<br>
+                                <strong>Duration:</strong> {{ (booking.end_date - booking.start_date).days + 1 }} days<br>
+                                <strong>Total Cost:</strong> KES {{ "{:,.2f}".format(booking.total_cost) }}<br>
+                                <strong>Booked On:</strong> {{ booking.created_at.strftime('%b %d, %Y %H:%M') }}
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Payment Information</h6>
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> 
+                                Payment of KES {{ "{:,.2f}".format(booking.total_cost) }} 
+                                was {% if booking.status == 'pending' %}pending{% else %}completed{% endif %}.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    {% if booking.status in ['confirmed', 'pending'] and booking.start_date > today %}
+                    <form method="POST" action="{{ url_for('cancel_booking', booking_id=booking.id) }}" 
+                          class="d-inline">
+                        <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Are you sure you want to cancel this booking?')">
+                            <i class="fas fa-times"></i> Cancel Booking
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button class="btn btn-primary">
+                        <i class="fas fa-print"></i> Print Receipt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="card shadow">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-calendar-times fa-4x text-gray-300 mb-4"></i>
+            <h4 class="text-gray-800">No Bookings Found</h4>
+            <p class="text-gray-600">You haven't made any bookings yet. Start your journey by renting a car!</p>
+            <a href="{{ url_for('search_cars') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-car"></i> Browse Available Cars
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "paging": false,
+            "searching": false,
+            "info": false,
+            "ordering": true
+        });
+    });
+</script>
+{% endblock %}

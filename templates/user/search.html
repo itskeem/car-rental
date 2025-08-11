@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Search Cars{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Search Filters Card -->
+    <div class="card shadow-lg mb-5 border-0">
+        <div class="card-header bg-gradient-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0"><i class="fas fa-car me-2"></i> Find Your Perfect Rental Car</h3>
+                <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" 
+                        data-bs-target="#filterCollapse" aria-expanded="true">
+                    <i class="fas fa-sliders-h"></i> Filters
+                </button>
+            </div>
+        </div>
+        <div class="card-body collapse show" id="filterCollapse">
+            <form method="GET" action="{{ url_for('search_cars') }}" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search_query" class="form-label">Search Make, Model or Features</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="search_query" name="search_query" 
+                               value="{{ request.args.get('search_query', '') }}" 
+                               placeholder="e.g. BMW, M5">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Daily Price Range</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <div class="input-group">
+                                <span class="input-group-text">KES</span>
+                                <input type="number" class="form-control" id="min_price" name="min_price" 
+                                       min="0" placeholder="Min" value="{{ request.args.get('min_price', '') }}">
+                            </div>
+                        </div>
+                        <div class="col-auto d-flex align-items-center px-0">
+                            <span class="text-muted">to</span>
+                        </div>
+                        <div class="col">
+                            <div class="input-group">
+                                <span class="input-group-text">KES</span>
+                                <input type="number" class="form-control" id="max_price" name="max_price" 
+                                       min="0" placeholder="Max" value="{{ request.args.get('max_price', '') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="car_type" class="form-label">Vehicle Type</label>
+                    <select class="form-select" id="car_type" name="car_type">
+                        <option value="">All Types</option>
+                        <option value="sedan" {% if request.args.get('car_type') == 'sedan' %}selected{% endif %}>Sedan</option>
+                        <option value="suv" {% if request.args.get('car_type') == 'suv' %}selected{% endif %}>SUV</option>
+                        <option value="truck" {% if request.args.get('car_type') == 'truck' %}selected{% endif %}>Truck</option>
+                        <option value="luxury" {% if request.args.get('car_type') == 'luxury' %}selected{% endif %}>Luxury</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="transmission" class="form-label">Transmission</label>
+                    <select class="form-select" id="transmission" name="transmission">
+                        <option value="">Any Transmission</option>
+                        <option value="automatic" {% if request.args.get('transmission') == 'automatic' %}selected{% endif %}>Automatic</option>
+                        <option value="manual" {% if request.args.get('transmission') == 'manual' %}selected{% endif %}>Manual</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="fuel_type" class="form-label">Fuel Type</label>
+                    <select class="form-select" id="fuel_type" name="fuel_type">
+                        <option value="">Any Fuel</option>
+                        <option value="petrol" {% if request.args.get('fuel_type') == 'petrol' %}selected{% endif %}>Petrol</option>
+                        <option value="diesel" {% if request.args.get('fuel_type') == 'diesel' %}selected{% endif %}>Diesel</option>
+                        <option value="hybrid" {% if request.args.get('fuel_type') == 'hybrid' %}selected{% endif %}>Hybrid</option>
+                        <option value="electric" {% if request.args.get('fuel_type') == 'electric' %}selected{% endif %}>Electric</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="available_only" name="available_only" 
+                                       value="true" {% if request.args.get('available_only') == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="available_only">Available Only</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="air_conditioning" name="air_conditioning" 
+                                       value="true" {% if request.args.get('air_conditioning') == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="air_conditioning">A/C</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="four_wheel" name="four_wheel" 
+                                       value="true" {% if request.args.get('four_wheel') == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="four_wheel">4WD</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 text-center mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="fas fa-search me-2"></i> Search Cars
+                    </button>
+                    <a href="{{ url_for('search_cars') }}" class="btn btn-outline-secondary btn-lg ms-3">
+                        <i class="fas fa-sync-alt me-2"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">
+                    {% if cars %}
+                        Showing {{ cars|length }} of {{ total_cars }} Cars
+                    {% else %}
+                        No Cars Found
+                    {% endif %}
+                </h3>
+                
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                            id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-sort me-2"></i>
+                        {% if request.args.get('sort') == 'price_asc' %}Price: Low to High
+                        {% elif request.args.get('sort') == 'price_desc' %}Price: High to Low
+                        {% elif request.args.get('sort') == 'year_desc' %}Newest First
+                        {% elif request.args.get('sort') == 'year_asc' %}Oldest First
+                        {% else %}Sort By{% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item" href="{{ updated_url(sort='price_asc') }}">Price: Low to High</a></li>
+                        <li><a class="dropdown-item" href="{{ updated_url(sort='price_desc') }}">Price: High to Low</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ updated_url(sort='year_desc') }}">Newest First</a></li>
+                        <li><a class="dropdown-item" href="{{ updated_url(sort='year_asc') }}">Oldest First</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            {% if cars %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                {% for car in cars %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm car-card">
+                        <div class="position-relative">
+                            <img src="{{ car.image_url or url_for('static', filename='images/car-placeholder.jpg') }}" 
+                                 class="card-img-top car-image" 
+                                 alt="{{ car.make }} {{ car.model }}"
+                                 loading="lazy">
+                            <span class="position-absolute top-0 start-0 m-2 badge bg-{{ 'success' if car.availability else 'danger' }}">
+                                {{ 'Available' if car.availability else 'Booked' }}
+                            </span>
+                            <span class="position-absolute top-0 end-0 m-2 badge bg-info">
+                                {{ car.fuel_type|capitalize }}
+                            </span>
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">{{ car.make }} {{ car.model }}</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">{{ car.year }} • {{ car.transmission|capitalize }}</span>
+                                <span class="fw-bold text-primary">KES {{ "{:,.2f}".format(car.price_per_day) }}/day</span>
+                            </div>
+                            
+                            <div class="car-features mb-3">
+                                <span class="badge bg-light text-dark me-1 mb-1">
+                                    <i class="fas fa-users text-primary me-1"></i> {{ car.seating_capacity }} seats
+                                </span>
+                                <span class="badge bg-light text-dark me-1 mb-1">
+                                    <i class="fas fa-gas-pump text-primary me-1"></i> {{ car.engine_capacity }}L
+                                </span>
+                                {% if car.air_conditioning %}
+                                <span class="badge bg-light text-dark me-1 mb-1">
+                                    <i class="fas fa-snowflake text-primary me-1"></i> A/C
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-white d-flex justify-content-between">
+                            <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-info-circle me-1"></i> Details
+                            </a>
+                            {% if car.availability %}
+                            <a href="{{ url_for('new_booking', car_id=car.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-calendar-check me-1"></i> Book Now
+                            </a>
+                            {% else %}
+                            <button class="btn btn-secondary btn-sm" disabled>
+                                <i class="fas fa-times me-1"></i> Unavailable
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <nav aria-label="Search pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ updated_url(page=pagination.prev_num) }}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=3) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ updated_url(page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ updated_url(page=pagination.next_num) }}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% else %}
+            <div class="text-center py-5">
+                <img src="{{ url_for('static', filename='images/no-results.svg') }}" alt="No results" style="max-width: 300px;" class="mb-4">
+                <h4 class="text-muted">No cars match your search criteria</h4>
+                <p class="text-muted">Try adjusting your filters or search for something different</p>
+                <a href="{{ url_for('search_cars') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-sync-alt me-2"></i> Reset Search
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize price range slider
+    const minPriceInput = document.getElementById('min_price');
+    const maxPriceInput = document.getElementById('max_price');
+    
+    // Sync price inputs to ensure min <= max
+    minPriceInput.addEventListener('change', function() {
+        if (maxPriceInput.value && parseInt(this.value) > parseInt(maxPriceInput.value)) {
+            maxPriceInput.value = this.value;
+        }
+    });
+    
+    maxPriceInput.addEventListener('change', function() {
+        if (minPriceInput.value && parseInt(this.value) < parseInt(minPriceInput.value)) {
+            minPriceInput.value = this.value;
+        }
+    });
+    
+    // Add animation to car cards on hover
+    const carCards = document.querySelectorAll('.car-card');
+    carCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+            this.style.boxShadow = '';
+        });
+    });
+});
+</script>
+
+<style>
+.car-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.car-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.car-image {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.car-card:hover .car-image {
+    transform: scale(1.05);
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 4.5em;
+}
+
+.car-features .badge {
+    font-weight: normal;
+    border: 1px solid #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.dropdown-menu {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+</style>
+{% endblock %}

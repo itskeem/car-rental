@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Admin Dashboard</h1>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Cars</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_cars }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-car fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_cars') }}" class="small text-primary stretched-link">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_users') }}" class="small text-success stretched-link">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Bookings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_bookings }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_bookings') }}" class="small text-info stretched-link">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Revenue</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">KES {{ "{:,.2f}".format(total_revenue) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin_bookings') }}?status=confirmed" class="small text-warning stretched-link">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Bookings Overview</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+                            <li><a class="dropdown-item chart-range" href="#" data-range="week">This Week</a></li>
+                            <li><a class="dropdown-item chart-range" href="#" data-range="month">This Month</a></li>
+                            <li><a class="dropdown-item chart-range" href="#" data-range="year">This Year</a></li>
+                        </ul>                        
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="bookingsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Booking Status</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> Confirmed
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-info"></i> Pending
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Cancelled
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Recent Bookings</h6>
+            <a href="{{ url_for('admin_bookings') }}" class="btn btn-sm btn-primary">View All</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Vehicle</th>
+                            <th>Period</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in recent_bookings %}
+                        <tr>
+                            <td>#{{ booking.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="ms-2">
+                                        <div class="fw-bold">{{ booking.user.username }}</div>
+                                        <div class="text-muted small">{{ booking.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {{ booking.car.make }} {{ booking.car.model }}
+                                <div class="text-muted small">{{ booking.car.registration_number }}</div>
+                            </td>
+                            <td>
+                                <div>{{ booking.start_date.strftime('%b %d') }} - {{ booking.end_date.strftime('%b %d') }}</div>
+                                <div class="text-muted small">{{ (booking.end_date - booking.start_date).days }} days</div>
+                            </td>
+                            <td class="fw-bold">KES {{ "{:,.2f}".format(booking.total_cost) }}</td>
+                            <td>
+                                <span class="badge bg-{{ 
+                                    'primary' if booking.status == 'confirmed' 
+                                    else 'success' if booking.status == 'completed' 
+                                    else 'warning' if booking.status == 'pending' 
+                                    else 'secondary' 
+                                }}">
+                                    {{ booking.status|capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bookingModal{{ booking.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% for booking in recent_bookings %}
+<div class="modal fade" id="bookingModal{{ booking.id }}" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Booking #{{ booking.id }} Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Customer Information</h6>
+                        <p>
+                            <strong>Name:</strong> {{ booking.user.username }}<br>
+                            <strong>Email:</strong> {{ booking.user.email }}<br>
+                            <strong>Phone:</strong> {{ booking.user.phone_number or 'N/A' }}<br>
+                            <strong>License:</strong> {{ booking.user.license_number or 'N/A' }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Vehicle Information</h6>
+                        <p>
+                            <strong>Make/Model:</strong> {{ booking.car.make }} {{ booking.car.model }}<br>
+                            <strong>Year:</strong> {{ booking.car.year }}<br>
+                            <strong>Registration:</strong> {{ booking.car.registration_number }}<br>
+                            <strong>Daily Rate:</strong> KES {{ "{:,.2f}".format(booking.car.price_per_day) }}
+                        </p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Booking Details</h6>
+                        <p>
+                            <strong>Dates:</strong> {{ booking.start_date.strftime('%b %d, %Y') }} to {{ booking.end_date.strftime('%b %d, %Y') }}<br>
+                            <strong>Duration:</strong> {{ (booking.end_date - booking.start_date).days + 1 }} days<br>
+                            <strong>Total Cost:</strong> KES {{ "{:,.2f}".format(booking.total_cost) }}<br>
+                            <strong>Booked On:</strong> {{ booking.created_at.strftime('%b %d, %Y %H:%M') }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Status</h6>
+                        <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.id) }}">
+                            <div class="mb-3">
+                                <select name="status" class="form-select">
+                                    <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                    <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#invoiceModal{{ booking.id }}">
+                    <i class="fas fa-file-invoice"></i> Generate Invoice
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('bookingsChart').getContext('2d');
+    var bookingsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Bookings',
+                data: {{ bookings_per_month | tojson }},
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                tension: 0.3
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            if (Number.isInteger(value)) {
+                                return value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+    var ctx2 = document.getElementById('statusPieChart').getContext('2d');
+    var statusPieChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Confirmed', 'Completed', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [
+                    {{ status_counts.get('confirmed', 0) }},
+                    {{ status_counts.get('completed', 0) }},
+                    {{ status_counts.get('pending', 0) }},
+                    {{ status_counts.get('cancelled', 0) }}
+                ],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
+                hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            cutout: '70%',
+        },
+    });
+</script>
+{% endblock %}
