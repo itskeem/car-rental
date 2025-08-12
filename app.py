@@ -10,6 +10,7 @@ from functools import wraps
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 import os
+from config import Config
 from sqlalchemy import func, extract
 from collections import defaultdict
 
@@ -883,3 +884,4 @@ if __name__ == '__main__':
         db.create_all()
 
     app.run(debug=True)
+
