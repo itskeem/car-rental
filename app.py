@@ -10,7 +10,6 @@ from functools import wraps
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 import os
-from config import Config
 from sqlalchemy import func, extract
 from collections import defaultdict
 
@@ -882,4 +881,5 @@ def check_availability(car_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+
     app.run(debug=True)
