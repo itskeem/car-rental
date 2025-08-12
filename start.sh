@@ -14,6 +14,5 @@ exit()
 EOF
 fi
 
-# Start the application
-exec gunicorn app:app
-
+# Start Gunicorn (using Python module syntax for reliability)
+exec python -m gunicorn --bind 0.0.0.0:10000 app:app
