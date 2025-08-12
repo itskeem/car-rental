@@ -31,8 +31,13 @@ login_manager.init_app(app)
 
 mail = Mail(app)
 
-# Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'  
+# Ensure the instance folder exists
+from pathlib import Path
+instance_path = Path('instance')
+instance_path.mkdir(exist_ok=True)
+
+# Configure SQLite database path
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'images')
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
@@ -884,4 +889,5 @@ if __name__ == '__main__':
         db.create_all()
 
     app.run(debug=True)
+
 
