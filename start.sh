@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Create database directory if it doesn't exist
-mkdir -p /tmp
+# Create instance directory if it doesn't exist
+mkdir -p instance
 
 # Initialize database if it doesn't exist
-if [ ! -f "/tmp/database.db" ]; then
+if [ ! -f "instance/database.db" ]; then
     echo "Initializing new database..."
     flask shell <<EOF
 from app import db
@@ -16,3 +16,4 @@ fi
 
 # Start the application
 exec gunicorn app:app
+
