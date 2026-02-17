@@ -1,4 +1,4 @@
-# Import necessary modules
+# Import modules
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
@@ -45,7 +45,7 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 # Initialize database
 db = SQLAlchemy(app)
 
-# Database Models
+# Database Models (SQlite)
 class User(UserMixin, db.Model):
     """User model for database"""
     __tablename__ = 'users'
@@ -889,5 +889,6 @@ if __name__ == '__main__':
         db.create_all()
 
     app.run(debug=True)
+
 
 
